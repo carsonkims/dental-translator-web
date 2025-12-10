@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dental Live Translator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    color: #333;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #1a3a52;
+    margin-bottom: 10px;
+    font-size: 32px;
+    font-weight: 600;
+  }
+  
+  .header-subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 20px;
+  }
+  
+  .panel {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    border: 1px solid #f0f0f0;
+  }
+  
+  h2 {
+    text-align: center;
+    color: #1a3a52;
+    margin: 0 0 24px 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+  }
+  
+  .controls {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  
+  button {
+    padding: 11px 20px;
+    background: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 102, 204, 0.25);
+  }
+  
+  button:hover {
+    background: #0052a3;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.35);
+    transform: translateY(-2px);
+  }
+  
+  button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
+  }
+  
+  button:focus {
+    outline: 2px solid rgba(0, 102, 204, 0.5);
+    outline-offset: 2px;
+  }
+  
+  button.secondary {
+    background: #6c757d;
+    box-shadow: 0 2px 6px rgba(108, 117, 125, 0.25);
+  }
+  
+  button.secondary:hover {
+    background: #5a6268;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.35);
+  }
+  
+  button.speaking {
+    background: #ff6600;
+  }
+  
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 13px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  textarea:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1), 0 0 0 1px rgba(0, 102, 204, 0.2);
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  
+  .translation-output {
+    background: linear-gradient(to bottom, #fafbfc, #f5f7fa);
+    padding: 16px;
+    border-radius: 8px;
+    min-height: 60px;
+    line-height: 1.6;
+    border: 1px solid #e1e8ed;
+  }
+  
+  .language-select {
+    padding: 11px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 14px;
+  }
+  
+  .language-select:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1), 0 0 0 1px rgba(0, 102, 204, 0.2);
+  }
+  
+  .conversation-history {
+    background: linear-gradient(to bottom, #fafbfc, #f5f7fa);
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 20px;
+    max-height: 600px;
+    overflow-y: auto;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  }
+  .history-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .conversation-item {
+    display: flex;
+    margin-bottom: 12px;
+  }
+  .bubble {
+    max-width: 72%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    word-break: break-word;
+  }
+  .bubble.left {
+    background: #ffffff;
+    margin-right: auto;
+    border-top-left-radius: 4px;
+  }
+  .bubble.right {
+    background: #e8f4ff;
+    margin-left: auto;
+    text-align: right;
+    border-top-right-radius: 4px;
+  }
+  .bubble .meta {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .bubble .translation {
+    margin-top: 8px;
+    font-size: 0.95em;
+    color: #333;
+    opacity: 0.85;
+    font-style: italic;
+  }
+  .conversation-item {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  .conversation-item:last-child {
+    border-bottom: none;
+  }
+  .speaker-label {
+    font-weight: bold;
+    color: #0066cc;
+    font-size: 12px;
+  }
+  .speaker-label.patient {
+    color: #00aa00;
+  }
+  .message-text {
+    margin: 5px 0;
+    color: #333;
+  }
+  .status {
+    font-size: 13px;
+    color: #666;
+    margin-top: 8px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .error {
+    color: #dc2626;
+    font-weight: 600;
+  }
+  .recording-dot {
+    display: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    margin-left: 8px;
+    vertical-align: middle;
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  }
+  .history-spacer {
+    height: 16px;
+    clear: both;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .history-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    word-wrap: break-word;
+    word-break: break-word;
+    font-size: 15px;
+    line-height: 1.5;
+    transition: box-shadow 0.2s ease;
+  }
+  .history-bubble:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .history-bubble.dentist {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    float: left;
+    text-align: left;
+    border-bottom-left-radius: 4px;
+  }
+  .history-bubble.patient {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    color: white;
+    float: right;
+    text-align: right;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+    margin-right: 0;
+  }
+  .history-speaker {
+    font-weight: 700;
+    font-size: 0.85em;
+    margin-bottom: 6px;
+    opacity: 0.95;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+  }
+  .history-original {
+    font-size: 0.95em;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .history-translation {
+    font-size: 0.9em;
+    line-height: 1.4;
+    opacity: 0.85;
+    font-style: italic;
+  }
+
+  /* Settings Panel */
+  .settings-tab {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 300px;
+    background: white;
+    box-shadow: -2px 0 12px rgba(0,0,0,0.1);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .settings-tab.open {
+    transform: translateX(0);
+  }
+
+  .settings-tab h3 {
+    margin-top: 0;
+    color: #1a3a52;
+    font-size: 20px;
+    border-bottom: 2px solid #0066cc;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .settings-group {
+    margin-bottom: 28px;
+  }
+
+  .settings-group label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .settings-group input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    accent-color: #0066cc;
+  }
+
+  .settings-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 13px;
+    box-sizing: border-box;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .settings-group select:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  }
+  
+  .settings-group input[type="range"] {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, #e0e0e0, #e0e0e0);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  
+  .settings-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0066cc, #0052a3);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 102, 204, 0.3);
+    transition: all 0.2s ease;
+  }
+  
+  .settings-group input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+  }
+  
+  .settings-group input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0066cc, #0052a3);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 102, 204, 0.3);
+    transition: all 0.2s ease;
+  }
+  
+  .settings-group input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: normal;
+  }
+
+  .settings-toggle-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0066cc, #0052a3);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    z-index: 999;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .settings-toggle-btn:hover {
+    box-shadow: 0 6px 16px rgba(0, 102, 204, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  .settings-toggle-btn:active {
+    transform: translateY(0);
+  }
+
+  .settings-close-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+    margin-top: 24px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .settings-close-btn:hover {
+    background: #c0392b;
+    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+  }
+
+  .settings-divider {
+    height: 1px;
+    background: #eee;
+    margin: 15px 0;
+  }
+
+  @media (max-width: 768px) {
+    .settings-tab {
+      width: 240px;
+    }
+  }
+  .clearfix {
+    clear: both;
+  }
+</style>
+</head>
+<body>
+<h1>🦷 Dental Translator - Live Conversation</h1>
+
+<div class="container">
+  <!-- Dentist Side -->
+  <div class="panel">
+    <h2>Dentist</h2>
+    <div class="controls">
+      <button id="dentistMicBtn" class="secondary">🎤 Start Speaking</button>
+      <span id="dentistRec" class="recording-dot" aria-hidden="true"></span>
+      <button id="dentistClearBtn" class="secondary">Clear</button>
+    </div>
+    <label for="dentistLang">Language:</label>
+    <select id="dentistLang" class="language-select">
+      <option value="English">English</option>
+      <option value="Spanish">Spanish</option>
+      <option value="French">French</option>
+      <option value="German">German</option>
+    </select>
+    <textarea id="dentistText" placeholder="Speak or type your message..."></textarea>
+    <div class="controls">
+      <button id="dentistTranslateBtn">📤 Send & Translate</button>
+      <button id="dentistSpeakBtn" class="secondary">🔊 Play Audio</button>
+    </div>
+    <div id="dentistStatus" class="status"></div>
+  </div>
+
+  <!-- Patient Side -->
+  <div class="panel">
+    <h2>Patient</h2>
+    <div class="controls">
+      <button id="patientMicBtn" class="secondary">🎤 Start Speaking</button>
+      <span id="patientRec" class="recording-dot" aria-hidden="true"></span>
+      <button id="patientClearBtn" class="secondary">Clear</button>
+    </div>
+    <label for="patientLang">Language:</label>
+    <select id="patientLang" class="language-select">
+      <option value="Spanish">Spanish</option>
+      <option value="English">English</option>
+      <option value="French">French</option>
+      <option value="German">German</option>
+    </select>
+    <textarea id="patientText" placeholder="Speak or type your message..."></textarea>
+    <div class="controls">
+      <button id="patientTranslateBtn">📤 Send & Translate</button>
+      <button id="patientSpeakBtn" class="secondary">🔊 Play Audio</button>
+    </div>
+    <div id="patientStatus" class="status"></div>
+  </div>
+</div>
+
+<!-- Conversation History -->
+<div class="panel" style="margin-top: 20px;">
+  <h2>Conversation History</h2>
+  <button id="clearHistoryBtn" class="secondary">Clear History</button>
+  <div id="conversationHistory" class="conversation-history">
+    <p style="color: #999;">Conversation will appear here...</p>
+  </div>
+</div>
+
+<!-- Settings Panel -->
+<div id="settingsPanel" class="settings-tab">
+  <h3>⚙️ Settings</h3>
+  
+  <div class="settings-group">
+    <label class="checkbox-label">
+      <input id="settingsAIToggle" type="checkbox" checked>
+      <span>AI Refine Translations</span>
+    </label>
+    <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Enable Google Gemini to refine messages for proper punctuation, capitalization, and grammar before translation.</p>
+  </div>
+
+  <div class="settings-divider"></div>
+
+  <div class="settings-group">
+    <label>Dentist Voice:</label>
+    <select id="settingsDentistVoice" class="language-select">
+      <option value="">Default</option>
+    </select>
+  </div>
+
+  <div class="settings-group">
+    <label>Patient Voice:</label>
+    <select id="settingsPatientVoice" class="language-select">
+      <option value="">Default</option>
+    </select>
+  </div>
+
+  <div class="settings-divider"></div>
+
+  <div class="settings-group">
+    <label>Speech Rate (Dentist):</label>
+    <input id="settingsDentistRate" type="range" min="0.5" max="2" step="0.1" value="0.9" style="width: 100%; cursor: pointer;">
+    <span id="dentistRateValue" style="font-size: 12px; color: #666;">0.9x</span>
+  </div>
+
+  <div class="settings-group">
+    <label>Speech Rate (Patient):</label>
+    <input id="settingsPatientRate" type="range" min="0.5" max="2" step="0.1" value="0.9" style="width: 100%; cursor: pointer;">
+    <span id="patientRateValue" style="font-size: 12px; color: #666;">0.9x</span>
+  </div>
+
+  <button id="settingsCloseBtn" class="settings-close-btn">Close Settings</button>
+</div>
+
+<!-- Settings Toggle Button -->
+<button id="settingsToggleBtn" class="settings-toggle-btn" title="Open Settings">⚙️</button>
+
+<script>
+  // Speech Recognition Setup
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+  
+  if (recognition) {
+    recognition.continuous = false;
+    recognition.interimResults = false;
+  }
+
+  const conversationHistory = [];
+
+  // Dentist Controls
+  const dentistMicBtn = document.getElementById("dentistMicBtn");
+  const dentistText = document.getElementById("dentistText");
+  const dentistLang = document.getElementById("dentistLang");
+  const dentistTranslateBtn = document.getElementById("dentistTranslateBtn");
+  const dentistSpeakBtn = document.getElementById("dentistSpeakBtn");
+  const dentistStatus = document.getElementById("dentistStatus");
+  const dentistClearBtn = document.getElementById("dentistClearBtn");
+
+  // Patient Controls
+  const patientMicBtn = document.getElementById("patientMicBtn");
+  const patientText = document.getElementById("patientText");
+  const patientLang = document.getElementById("patientLang");
+  const patientTranslateBtn = document.getElementById("patientTranslateBtn");
+  const patientSpeakBtn = document.getElementById("patientSpeakBtn");
+  const patientStatus = document.getElementById("patientStatus");
+  const patientClearBtn = document.getElementById("patientClearBtn");
+
+  let currentSpeaker = null;
+  let availableVoices = [];
+
+  // Load available voices
+  function loadVoices() {
+    availableVoices = speechSynthesis.getVoices();
+  }
+
+  // Load voices when they're ready
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  
+  // Load voices immediately
+  loadVoices();
+
+  // Check if speech recognition is supported
+  const speechRecognitionSupported = !!(SpeechRecognition);
+
+  // Mic Button Handlers - press-and-hold to record on all devices
+  let isListening = false;
+
+  function stopListening(speaker) {
+    if (!speechRecognitionSupported) return;
+    if (!isListening) return;
+    try {
+      recognition.stop();
+    } catch (e) {
+      console.warn('stopListening error', e);
+    }
+    // do not clear currentSpeaker here — recognition.onend will reset UI
+  }
+
+  function setupMicButton(speaker) {
+    const btn = document.getElementById(speaker + "MicBtn");
+
+    // Start on mouse down / touch start (works on all devices)
+    btn.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      if (!speechRecognitionSupported) {
+        document.getElementById(speaker + "Status").textContent = "🎤 Speech recognition not supported on this device. Please type or use keyboard dictation.";
+        setTimeout(() => { document.getElementById(speaker + "Status").textContent = ""; }, 3000);
+        return;
+      }
+      if (isListening) return;
+      isListening = true;
+      startListening(speaker);
+    });
+
+    btn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!speechRecognitionSupported) {
+        document.getElementById(speaker + "Status").textContent = "🎤 Speech recognition not supported on this device. Please type or use keyboard dictation.";
+        setTimeout(() => { document.getElementById(speaker + "Status").textContent = ""; }, 3000);
+        return;
+      }
+      if (isListening) return;
+      isListening = true;
+      startListening(speaker);
+    }, { passive: false });
+
+    // Stop on mouseup, mouseleave or touchend/touchcancel
+    const stop = (e) => {
+      if (e) e.preventDefault();
+      if (!isListening) return;
+      isListening = false;
+      stopListening(speaker);
+    };
+
+    btn.addEventListener("mouseup", stop);
+    btn.addEventListener("mouseleave", stop);
+    btn.addEventListener("touchend", stop);
+    btn.addEventListener("touchcancel", stop);
+  }
+
+  setupMicButton("dentist");
+  setupMicButton("patient");
+
+  function startListening(speaker) {
+    if (!speechRecognitionSupported) {
+      document.getElementById(speaker + "Status").textContent = "🎤 Speech recognition not supported on this device. Please type or use keyboard dictation.";
+      setTimeout(() => {
+        document.getElementById(speaker + "Status").textContent = "";
+      }, 3000);
+      return;
+    }
+
+    currentSpeaker = speaker;
+    recognition.start();
+    document.getElementById(speaker + "MicBtn").textContent = "🎤 Listening...";
+    document.getElementById(speaker + "MicBtn").classList.add("speaking");
+    try { document.getElementById(speaker + "Rec").style.display = 'inline-block'; } catch (e) {}
+  }
+
+  if (recognition) {
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map(result => result[0].transcript)
+        .join("");
+      
+      document.getElementById(currentSpeaker + "Text").value = transcript;
+    };
+
+    recognition.onend = () => {
+      if (currentSpeaker) {
+        document.getElementById(currentSpeaker + "MicBtn").textContent = "🎤 Start Speaking";
+        document.getElementById(currentSpeaker + "MicBtn").classList.remove("speaking");
+        // hide recording indicator and reset listening flag
+        try { document.getElementById(currentSpeaker + "Rec").style.display = 'none'; } catch (e) {}
+        isListening = false;
+      }
+    };
+
+    recognition.onerror = (event) => {
+      document.getElementById(currentSpeaker + "Status").textContent = `Error: ${event.error}`;
+      document.getElementById(currentSpeaker + "MicBtn").textContent = "🎤 Start Speaking";
+      document.getElementById(currentSpeaker + "MicBtn").classList.remove("speaking");
+      try { document.getElementById(currentSpeaker + "Rec").style.display = 'none'; } catch (e) {}
+      isListening = false;
+    };
+  }
+
+  // Translation Handler
+  async function translate(speaker) {
+    const textArea = document.getElementById(speaker + "Text");
+    const langSelect = document.getElementById(speaker + "Lang");
+    const statusDiv = document.getElementById(speaker + "Status");
+    
+    const text = textArea.value.trim();
+    const sourceLang = langSelect.value;
+    
+    if (!text) {
+      statusDiv.textContent = "Please enter text to translate";
+      return;
+    }
+
+    statusDiv.textContent = "Translating...";
+
+    try {
+      // Determine other speaker and target language (opposite of source)
+      const otherSpeaker = speaker === "dentist" ? "patient" : "dentist";
+      const otherLangSelect = document.getElementById(otherSpeaker + "Lang");
+      let targetLang = otherLangSelect.value;
+
+      // If both sides use the same language, auto-swap the other side to a different language
+      if (sourceLang === targetLang) {
+        // Prefer English when auto-switching
+        let swapped = false;
+        let preferredIndex = -1;
+        for (let i = 0; i < otherLangSelect.options.length; i++) {
+          const opt = otherLangSelect.options[i];
+          if (opt.value === 'English' && opt.value !== sourceLang) {
+            preferredIndex = i;
+            break;
+          }
+        }
+
+        if (preferredIndex !== -1) {
+          otherLangSelect.selectedIndex = preferredIndex;
+          targetLang = otherLangSelect.options[preferredIndex].value;
+          swapped = true;
+        } else {
+          for (let i = 0; i < otherLangSelect.options.length; i++) {
+            const opt = otherLangSelect.options[i];
+            if (opt.value !== sourceLang) {
+              otherLangSelect.selectedIndex = i;
+              targetLang = opt.value;
+              swapped = true;
+              break;
+            }
+          }
+        }
+
+        if (swapped) {
+          statusDiv.textContent = `Auto-swapped ${otherSpeaker} language to ${targetLang}`;
+          setTimeout(() => { statusDiv.textContent = ""; }, 1500);
+        } else {
+          statusDiv.textContent = "No alternative language to swap to";
+          setTimeout(() => { statusDiv.textContent = ""; }, 2000);
+          return;
+        }
+      }
+
+      const response = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, target: targetLang, source: sourceLang, refine: settingsAIToggle ? !!settingsAIToggle.checked : true })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const translation = data.translation || "Error translating";
+
+      // Update the other side's textarea
+      document.getElementById(otherSpeaker + "Text").value = translation;
+
+      // Add to conversation history
+      addToHistory(speaker, text, sourceLang, translation, targetLang);
+
+      statusDiv.textContent = "✓ Translated - Speaking...";
+      
+      // Automatically speak the translation in the other language
+      setTimeout(() => {
+        speak(otherSpeaker);
+        setTimeout(() => { statusDiv.textContent = ""; }, 2000);
+      }, 300);
+
+    } catch (error) {
+      statusDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+    }
+  }
+
+  // Text-to-Speech Handler
+  let dentistSpeechRate = 0.9;
+  let patientSpeechRate = 0.9;
+
+  function speak(speaker) {
+    const textArea = document.getElementById(speaker + "Text");
+    const text = textArea.value.trim();
+    
+    if (!text) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const lang = document.getElementById(speaker + "Lang").value;
+    
+    // Map language names to language codes
+    const langCodes = {
+      "English": "en-US",
+      "Spanish": "es-ES",
+      "French": "fr-FR",
+      "German": "de-DE",
+      "Portuguese": "pt-PT",
+      "Italian": "it-IT",
+      "Japanese": "ja-JP",
+      "Mandarin": "zh-CN"
+    };
+
+    utterance.lang = langCodes[lang] || "en-US";
+    
+    // Use custom speech rate from settings
+    utterance.rate = speaker === "dentist" ? dentistSpeechRate : patientSpeechRate;
+    utterance.pitch = 1;
+    
+    speechSynthesis.speak(utterance);
+  }
+
+  // Add to conversation history
+  function addToHistory(speaker, original, originalLang, translation, translatedLang) {
+    const otherSpeaker = speaker === "dentist" ? "Patient" : "Dentist";
+    conversationHistory.push({
+      speaker: speaker === "dentist" ? "Dentist" : "Patient",
+      original,
+      originalLang,
+      translation,
+      translatedLang,
+      timestamp: new Date().toLocaleTimeString()
+    });
+
+    updateHistoryDisplay();
+  }
+
+  function updateHistoryDisplay() {
+    const historyDiv = document.getElementById("conversationHistory");
+    if (conversationHistory.length === 0) {
+      historyDiv.innerHTML = '<p style="color: #999;">Conversation will appear here...</p>';
+      return;
+    }
+    historyDiv.innerHTML = '<div class="history-list"></div>';
+    const list = historyDiv.querySelector('.history-list');
+    conversationHistory.forEach(entry => {
+      const bubble = document.createElement('div');
+      if (entry.speaker === 'Dentist') {
+        bubble.className = 'history-bubble dentist';
+        bubble.style.float = 'left';
+        bubble.style.textAlign = 'left';
+      } else {
+        bubble.className = 'history-bubble patient';
+        bubble.style.float = 'right';
+        bubble.style.textAlign = 'right';
+      }
+      bubble.innerHTML = `
+        <div class="history-speaker">${entry.speaker === 'Dentist' ? 'Dentist (' + entry.originalLang + ')' : 'Patient (' + entry.originalLang + ')'}</div>
+        <div class="history-original">${entry.original}</div>
+        <div class="history-translation">${entry.translation}</div>
+      `;
+      list.appendChild(bubble);
+      const clearfix = document.createElement('div');
+      clearfix.className = 'clearfix';
+      list.appendChild(clearfix);
+      const spacer = document.createElement('div');
+      spacer.className = 'history-spacer';
+      list.appendChild(spacer);
+    });
+  }
+
+  // Button Event Listeners
+  dentistTranslateBtn.addEventListener("click", () => translate("dentist"));
+  dentistSpeakBtn.addEventListener("click", () => speak("dentist"));
+  dentistClearBtn.addEventListener("click", () => {
+    dentistText.value = "";
+    dentistStatus.textContent = "";
+  });
+
+  patientTranslateBtn.addEventListener("click", () => translate("patient"));
+  patientSpeakBtn.addEventListener("click", () => speak("patient"));
+  patientClearBtn.addEventListener("click", () => {
+    patientText.value = "";
+    patientStatus.textContent = "";
+  });
+
+  document.getElementById("clearHistoryBtn").addEventListener("click", () => {
+    conversationHistory.length = 0;
+    updateHistoryDisplay();
+  });
+
+  // Allow Enter key to send
+  dentistText.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key === "Enter") translate("dentist");
+  });
+
+  patientText.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key === "Enter") translate("patient");
+  });
+
+  // ===== SETTINGS PANEL FUNCTIONALITY =====
+  const settingsPanel = document.getElementById("settingsPanel");
+  const settingsToggleBtn = document.getElementById("settingsToggleBtn");
+  const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+  const settingsAIToggle = document.getElementById("settingsAIToggle");
+  const settingsDentistVoice = document.getElementById("settingsDentistVoice");
+  const settingsPatientVoice = document.getElementById("settingsPatientVoice");
+  const settingsDentistRate = document.getElementById("settingsDentistRate");
+  const settingsPatientRate = document.getElementById("settingsPatientRate");
+
+  // Populate voice selects in settings
+  const populateSettingsVoices = () => {
+    const voiceOptions = availableVoices.map((voice, index) => 
+      `<option value="${index}">${voice.name}</option>`
+    ).join("");
+    
+    settingsDentistVoice.innerHTML = '<option value="">Default</option>' + voiceOptions;
+    settingsPatientVoice.innerHTML = '<option value="">Default</option>' + voiceOptions;
+  };
+
+  // Speech rate handlers with display
+  settingsDentistRate.addEventListener("input", (e) => {
+    dentistSpeechRate = parseFloat(e.target.value);
+    document.getElementById("dentistRateValue").textContent = dentistSpeechRate.toFixed(1) + "x";
+  });
+
+  settingsPatientRate.addEventListener("input", (e) => {
+    patientSpeechRate = parseFloat(e.target.value);
+    document.getElementById("patientRateValue").textContent = patientSpeechRate.toFixed(1) + "x";
+  });
+
+  // Settings panel toggle
+  settingsToggleBtn.addEventListener("click", () => {
+    settingsPanel.classList.toggle("open");
+    if (settingsPanel.classList.contains("open")) {
+      populateSettingsVoices();
+    }
+  });
+
+  settingsCloseBtn.addEventListener("click", () => {
+    settingsPanel.classList.remove("open");
+  });
+
+  // Close settings when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!settingsPanel.contains(e.target) && !settingsToggleBtn.contains(e.target)) {
+      settingsPanel.classList.remove("open");
+    }
+  });
+
+</script>
+</body>
+</html>
