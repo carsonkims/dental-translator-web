@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: dental-translator-web
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: GOOGLE_GEMINI_KEY
+        sync: false
+      - key: AI_PROVIDER
+        value: gemini
