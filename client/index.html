@@ -1106,12 +1106,16 @@
       // Add to conversation history
       addToHistory(speaker, text, sourceLang, translation, targetLang);
 
-      statusDiv.textContent = "✓ Translated - Speaking...";
+      statusDiv.textContent = "✓ Translated - Tap 🔊 Play Audio to hear it";
       
-      // Automatically speak the translation in the other language
-      // Call directly to preserve user gesture context for iOS
-      speak(otherSpeaker);
-      setTimeout(() => { statusDiv.textContent = ""; }, 3000);
+      // Flash the Play Audio button to draw attention
+      const playBtn = document.getElementById(otherSpeaker + "SpeakBtn");
+      playBtn.style.animation = "none";
+      setTimeout(() => {
+        playBtn.style.animation = "pulse 0.6s ease-in-out 3";
+      }, 10);
+      
+      setTimeout(() => { statusDiv.textContent = ""; }, 4000);
 
     } catch (error) {
       statusDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
@@ -1128,9 +1132,6 @@
     
     if (!text) return;
 
-    // Cancel any ongoing speech first
-    speechSynthesis.cancel();
-    
     const utterance = new SpeechSynthesisUtterance(text);
     const lang = document.getElementById(speaker + "Lang").value;
     
@@ -1152,6 +1153,14 @@
     utterance.rate = speaker === "dentist" ? dentistSpeechRate : patientSpeechRate;
     utterance.pitch = 1;
     utterance.volume = 1;
+    
+    // For iOS: stop any current speech, then speak
+    speechSynthesis.cancel();
+    
+    // Try to resume the speech synthesis context on iOS
+    if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+    }
     
     speechSynthesis.speak(utterance);
   }
