@@ -196,7 +196,7 @@ app.post("/translate", async (req, res) => {
 app.use(express.static(path.join(__dirname, "../client")));
 
 // Serve index.html for all unmatched routes (SPA fallback)
-app.get("*", (req, res) => {
+app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "client", "index.html"));
 });
 
