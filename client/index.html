@@ -105,6 +105,10 @@
     box-shadow: 0 4px 12px rgba(108, 117, 125, 0.35);
   }
   
+  #dentistSpeakBtn, #patientSpeakBtn {
+    display: none;
+  }
+  
   button.speaking {
     background: #ff6600;
   }
@@ -1106,16 +1110,12 @@
       // Add to conversation history
       addToHistory(speaker, text, sourceLang, translation, targetLang);
 
-      statusDiv.textContent = "✓ Translated - Tap 🔊 Play Audio to hear it";
+      statusDiv.textContent = "✓ Translated - Speaking...";
       
-      // Flash the Play Audio button to draw attention
-      const playBtn = document.getElementById(otherSpeaker + "SpeakBtn");
-      playBtn.style.animation = "none";
-      setTimeout(() => {
-        playBtn.style.animation = "pulse 0.6s ease-in-out 3";
-      }, 10);
-      
-      setTimeout(() => { statusDiv.textContent = ""; }, 4000);
+      // Automatically speak the translation in the other language
+      // Call directly to preserve user gesture context for iOS
+      speak(otherSpeaker);
+      setTimeout(() => { statusDiv.textContent = ""; }, 3000);
 
     } catch (error) {
       statusDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
@@ -1132,6 +1132,9 @@
     
     if (!text) return;
 
+    // Cancel any ongoing speech first
+    speechSynthesis.cancel();
+    
     const utterance = new SpeechSynthesisUtterance(text);
     const lang = document.getElementById(speaker + "Lang").value;
     
@@ -1153,14 +1156,6 @@
     utterance.rate = speaker === "dentist" ? dentistSpeechRate : patientSpeechRate;
     utterance.pitch = 1;
     utterance.volume = 1;
-    
-    // For iOS: stop any current speech, then speak
-    speechSynthesis.cancel();
-    
-    // Try to resume the speech synthesis context on iOS
-    if (speechSynthesis.paused) {
-      speechSynthesis.resume();
-    }
     
     speechSynthesis.speak(utterance);
   }
@@ -1215,14 +1210,22 @@
   }
 
   // Button Event Listeners
-  dentistTranslateBtn.addEventListener("click", () => translate("dentist"));
+  dentistTranslateBtn.addEventListener("click", () => {
+    // Initialize speechSynthesis context immediately in user gesture
+    speechSynthesis.cancel();
+    translate("dentist");
+  });
   dentistSpeakBtn.addEventListener("click", () => speak("dentist"));
   dentistClearBtn.addEventListener("click", () => {
     dentistText.value = "";
     dentistStatus.textContent = "";
   });
 
-  patientTranslateBtn.addEventListener("click", () => translate("patient"));
+  patientTranslateBtn.addEventListener("click", () => {
+    // Initialize speechSynthesis context immediately in user gesture
+    speechSynthesis.cancel();
+    translate("patient");
+  });
   patientSpeakBtn.addEventListener("click", () => speak("patient"));
   patientClearBtn.addEventListener("click", () => {
     patientText.value = "";
