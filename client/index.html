@@ -944,43 +944,25 @@
   function setupMicButton(speaker) {
     const btn = document.getElementById(speaker + "MicBtn");
 
-    // Start on mouse down / touch start (works on all devices)
-    btn.addEventListener("mousedown", (e) => {
+    // Toggle recording on click (tap to start, tap to stop)
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
       if (!speechRecognitionSupported) {
         document.getElementById(speaker + "Status").textContent = "🎤 Speech recognition not supported on this device. Please type or use keyboard dictation.";
         setTimeout(() => { document.getElementById(speaker + "Status").textContent = ""; }, 3000);
         return;
       }
-      if (isListening) return;
-      isListening = true;
-      startListening(speaker);
+      
+      if (isListening) {
+        // Stop listening
+        isListening = false;
+        stopListening(speaker);
+      } else {
+        // Start listening
+        isListening = true;
+        startListening(speaker);
+      }
     });
-
-    btn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      if (!speechRecognitionSupported) {
-        document.getElementById(speaker + "Status").textContent = "🎤 Speech recognition not supported on this device. Please type or use keyboard dictation.";
-        setTimeout(() => { document.getElementById(speaker + "Status").textContent = ""; }, 3000);
-        return;
-      }
-      if (isListening) return;
-      isListening = true;
-      startListening(speaker);
-    }, { passive: false });
-
-    // Stop on mouseup, mouseleave or touchend/touchcancel
-    const stop = (e) => {
-      if (e) e.preventDefault();
-      if (!isListening) return;
-      isListening = false;
-      stopListening(speaker);
-    };
-
-    btn.addEventListener("mouseup", stop);
-    btn.addEventListener("mouseleave", stop);
-    btn.addEventListener("touchend", stop);
-    btn.addEventListener("touchcancel", stop);
   }
 
   setupMicButton("dentist");
@@ -997,7 +979,7 @@
 
     currentSpeaker = speaker;
     recognition.start();
-    document.getElementById(speaker + "MicBtn").textContent = "🎤 Listening...";
+    document.getElementById(speaker + "MicBtn").textContent = "⏹️ Stop Recording";
     document.getElementById(speaker + "MicBtn").classList.add("speaking");
     try { document.getElementById(speaker + "Rec").style.display = 'inline-block'; } catch (e) {}
   }
@@ -1112,10 +1094,16 @@
 
       statusDiv.textContent = "✓ Translated - Speaking...";
       
+      console.log("About to speak:", otherSpeaker, translation);
+      
       // Automatically speak the translation in the other language
-      // Call directly to preserve user gesture context for iOS
-      speak(otherSpeaker);
-      setTimeout(() => { statusDiv.textContent = ""; }, 3000);
+      // Use 0ms timeout to trigger speech as soon as possible after fetch completes
+      // but still within the user gesture window
+      setTimeout(() => {
+        console.log("Calling speak function");
+        speak(otherSpeaker);
+        setTimeout(() => { statusDiv.textContent = ""; }, 3000);
+      }, 0);
 
     } catch (error) {
       statusDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
@@ -1132,32 +1120,46 @@
     
     if (!text) return;
 
-    // Cancel any ongoing speech first
-    speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    const lang = document.getElementById(speaker + "Lang").value;
-    
-    // Map language names to language codes
-    const langCodes = {
-      "English": "en-US",
-      "Spanish": "es-ES",
-      "French": "fr-FR",
-      "German": "de-DE",
-      "Portuguese": "pt-PT",
-      "Italian": "it-IT",
-      "Japanese": "ja-JP",
-      "Mandarin": "zh-CN"
-    };
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      const lang = document.getElementById(speaker + "Lang").value;
+      
+      // Map language names to language codes
+      const langCodes = {
+        "English": "en-US",
+        "Spanish": "es-ES",
+        "French": "fr-FR",
+        "German": "de-DE",
+        "Portuguese": "pt-PT",
+        "Italian": "it-IT",
+        "Japanese": "ja-JP",
+        "Mandarin": "zh-CN"
+      };
 
-    utterance.lang = langCodes[lang] || "en-US";
-    
-    // Use custom speech rate from settings
-    utterance.rate = speaker === "dentist" ? dentistSpeechRate : patientSpeechRate;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    
-    speechSynthesis.speak(utterance);
+      utterance.lang = langCodes[lang] || "en-US";
+      
+      // Use custom speech rate from settings
+      utterance.rate = speaker === "dentist" ? dentistSpeechRate : patientSpeechRate;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      
+      // Add error handling for iOS
+      utterance.onerror = (event) => {
+        console.error("Speech synthesis error:", event.error);
+      };
+      
+      utterance.onstart = () => {
+        console.log("Speech started");
+      };
+      
+      // Cancel any ongoing speech first
+      speechSynthesis.cancel();
+      
+      // Immediately speak
+      speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.error("Error in speak function:", e);
+    }
   }
 
   // Add to conversation history
@@ -1212,7 +1214,8 @@
   // Button Event Listeners
   dentistTranslateBtn.addEventListener("click", () => {
     // Initialize speechSynthesis context immediately in user gesture
-    speechSynthesis.cancel();
+    const utteranceTest = new SpeechSynthesisUtterance("");
+    speechSynthesis.speak(utteranceTest);
     translate("dentist");
   });
   dentistSpeakBtn.addEventListener("click", () => speak("dentist"));
@@ -1223,7 +1226,8 @@
 
   patientTranslateBtn.addEventListener("click", () => {
     // Initialize speechSynthesis context immediately in user gesture
-    speechSynthesis.cancel();
+    const utteranceTest = new SpeechSynthesisUtterance("");
+    speechSynthesis.speak(utteranceTest);
     translate("patient");
   });
   patientSpeakBtn.addEventListener("click", () => speak("patient"));
