@@ -1109,11 +1109,9 @@
       statusDiv.textContent = "✓ Translated - Speaking...";
       
       // Automatically speak the translation in the other language
-      // Use longer delay for iOS compatibility
-      setTimeout(() => {
-        speak(otherSpeaker);
-        setTimeout(() => { statusDiv.textContent = ""; }, 2500);
-      }, 500);
+      // Call directly to preserve user gesture context for iOS
+      speak(otherSpeaker);
+      setTimeout(() => { statusDiv.textContent = ""; }, 3000);
 
     } catch (error) {
       statusDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
@@ -1133,32 +1131,29 @@
     // Cancel any ongoing speech first
     speechSynthesis.cancel();
     
-    // Small delay to ensure iOS is ready
-    setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      const lang = document.getElementById(speaker + "Lang").value;
-      
-      // Map language names to language codes
-      const langCodes = {
-        "English": "en-US",
-        "Spanish": "es-ES",
-        "French": "fr-FR",
-        "German": "de-DE",
-        "Portuguese": "pt-PT",
-        "Italian": "it-IT",
-        "Japanese": "ja-JP",
-        "Mandarin": "zh-CN"
-      };
+    const utterance = new SpeechSynthesisUtterance(text);
+    const lang = document.getElementById(speaker + "Lang").value;
+    
+    // Map language names to language codes
+    const langCodes = {
+      "English": "en-US",
+      "Spanish": "es-ES",
+      "French": "fr-FR",
+      "German": "de-DE",
+      "Portuguese": "pt-PT",
+      "Italian": "it-IT",
+      "Japanese": "ja-JP",
+      "Mandarin": "zh-CN"
+    };
 
-      utterance.lang = langCodes[lang] || "en-US";
-      
-      // Use custom speech rate from settings
-      utterance.rate = speaker === "dentist" ? dentistSpeechRate : patientSpeechRate;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      speechSynthesis.speak(utterance);
-    }, 100);
+    utterance.lang = langCodes[lang] || "en-US";
+    
+    // Use custom speech rate from settings
+    utterance.rate = speaker === "dentist" ? dentistSpeechRate : patientSpeechRate;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    speechSynthesis.speak(utterance);
   }
 
   // Add to conversation history
